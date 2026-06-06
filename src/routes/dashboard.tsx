@@ -49,7 +49,9 @@ import {
   exportMonthlyData,
 } from "@/lib/finance.functions";
 import { createWallet, adjustWallet, deleteWallet } from "@/lib/wallets.functions";
+import { listReminders, createReminder, toggleReminder, deleteReminder } from "@/lib/reminders.functions";
 import { chatFinance } from "@/lib/chat.functions";
+
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
 import { updateProfile } from "@/lib/profile.functions";
