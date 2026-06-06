@@ -395,8 +395,9 @@ function Dashboard() {
                           contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)", fontSize: 12 }}
                           formatter={(v: number) => rupiah(v)}
                         />
-                        <Bar dataKey="Pemasukan" fill="oklch(0.65 0.17 155)" radius={[6, 6, 0, 0]} />
-                        <Bar dataKey="Pengeluaran" fill="oklch(0.55 0.18 275)" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="Pemasukan" fill="var(--success)" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="Pengeluaran" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
