@@ -29,7 +29,13 @@ import {
   FileText,
   FileSpreadsheet,
   User as UserIcon,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  Bell,
+  Check,
 } from "lucide-react";
+
 
 import { getCurrentUser, logoutUser } from "@/lib/auth.functions";
 import {
