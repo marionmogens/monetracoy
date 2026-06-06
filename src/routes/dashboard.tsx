@@ -695,8 +695,8 @@ function AddTxModal({
   wallets,
   onClose,
 }: {
-  categories: any[];
-  wallets: Array<{ id: string; name: string; balance: number }>;
+  categories: Array<{ id: string; name: string; type: "income" | "expense"; color: string }>;
+  wallets: Array<{ id: string; name: string; balance: number; categoryId: string | null }>;
   onClose: () => void;
 }) {
   const add = useServerFn(addTransaction);
@@ -711,6 +711,11 @@ function AddTxModal({
   const [err, setErr] = useState("");
   const filtered = categories.filter((c) => c.type === type);
 
+  const selectedWallet = wallets.find((w) => w.id === walletId) || null;
+  const lockedCategoryId = selectedWallet?.categoryId ?? null;
+  const lockedCategory = lockedCategoryId ? categories.find((c) => c.id === lockedCategoryId) : null;
+  const effectiveCategoryId = lockedCategoryId ?? categoryId;
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
@@ -720,7 +725,7 @@ function AddTxModal({
         data: {
           type,
           amount: Number(amount),
-          categoryId: categoryId || null,
+          categoryId: effectiveCategoryId || null,
           walletId: walletId || null,
           note,
           occurredAt: date,
@@ -747,6 +752,7 @@ function AddTxModal({
               onClick={() => {
                 setType(t);
                 setCategoryId("");
+                setWalletId("");
               }}
               className={`rounded-lg py-1.5 text-sm font-medium transition ${
                 type === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
@@ -766,22 +772,35 @@ function AddTxModal({
           placeholder="Jumlah (Rp)"
           className={inputCls}
         />
-        <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
-          <option value="">Tanpa kategori</option>
-          {filtered.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
         {wallets.length > 0 && (
           <select value={walletId} onChange={(e) => setWalletId(e.target.value)} className={inputCls}>
             <option value="">
-              {type === "expense" ? "Tanpa dompet (dari dana bebas)" : "Tanpa dompet"}
+              {type === "expense" ? "Tanpa dompet (dari saldo total)" : "Tanpa dompet"}
             </option>
             {wallets.map((w) => (
               <option key={w.id} value={w.id}>
                 {w.name} — Rp {Math.round(w.balance).toLocaleString("id-ID")}
+              </option>
+            ))}
+          </select>
+        )}
+        {selectedWallet ? (
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm">
+            <span className="text-muted-foreground">Kategori:</span>
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              {lockedCategory?.color && (
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: lockedCategory.color }} />
+              )}
+              {lockedCategory?.name ?? "Tanpa kategori"}
+            </span>
+            <span className="ml-auto text-xs text-muted-foreground">terkunci ke dompet</span>
+          </div>
+        ) : (
+          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
+            <option value="">Tanpa kategori (dari saldo total)</option>
+            {filtered.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
               </option>
             ))}
           </select>
@@ -805,6 +824,7 @@ function AddTxModal({
     </Modal>
   );
 }
+
 
 function CategoryModal({ categories, onClose }: { categories: any[]; onClose: () => void }) {
   const add = useServerFn(addCategory);
