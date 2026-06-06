@@ -224,8 +224,10 @@ function Dashboard() {
     { id: "transactions", label: "Transaksi", icon: ListOrdered },
     { id: "wallets", label: "Dompet", icon: Wallet },
     { id: "categories", label: "Kategori", icon: Tags },
+    { id: "calendar", label: "Kalender", icon: CalendarIcon },
     { id: "ai", label: "Monetra AI", icon: Bot },
   ] as const;
+
 
   const filteredTx = useMemo(() => {
     if (!data) return [];
