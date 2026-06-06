@@ -1189,7 +1189,8 @@ function WalletsView({
   const del = useServerFn(deleteWallet);
   const router = useRouter();
   const expenseCats = categories.filter((c) => c.type === "expense");
-  const [name, setName] = useState("");
+  const usedCatIds = new Set(wallets.map((w) => w.categoryId).filter(Boolean) as string[]);
+  const availableCats = expenseCats.filter((c) => !usedCatIds.has(c.id));
   const [categoryId, setCategoryId] = useState<string>("");
   const [initial, setInitial] = useState("");
   const [err, setErr] = useState("");
@@ -1202,19 +1203,20 @@ function WalletsView({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
-    if (!name.trim()) {
-      setErr("Nama dompet wajib diisi");
+    const cat = expenseCats.find((c) => c.id === categoryId);
+    if (!cat) {
+      setErr("Pilih kategori untuk dompet baru");
       return;
     }
     try {
       await create({
         data: {
-          name: name.trim(),
+          name: cat.name,
           initialBalance: Number(initial) || 0,
-          categoryId: categoryId || null,
+          categoryId: cat.id,
+          color: cat.color,
         },
       });
-      setName("");
       setCategoryId("");
       setInitial("");
       await refresh();
@@ -1264,19 +1266,19 @@ function WalletsView({
       <form onSubmit={submit} className="mb-6 rounded-3xl border border-border bg-card p-6">
         <h3 className="text-sm font-semibold tracking-tight">Buat dompet baru</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Beri nama dompet & saldo awal. Kategori opsional — kalau diisi, transaksi dari dompet ini terkunci ke kategori tersebut.
+          Dompet dibuat dari kategori pengeluaran. Untuk menambah pilihan, buat kategori baru di tab Kategori.
         </p>
-        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_180px_auto]">
-          <input
+        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_180px_auto]">
+          <select
             required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nama dompet (cth: Tabungan)"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
             className={inputCls}
-          />
-          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
-            <option value="">Tanpa kategori (opsional)</option>
-            {expenseCats.map((c) => (
+          >
+            <option value="">
+              {availableCats.length === 0 ? "Tidak ada kategori tersisa — buat di tab Kategori" : "Pilih kategori…"}
+            </option>
+            {availableCats.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -1290,12 +1292,16 @@ function WalletsView({
             placeholder="Saldo awal (Rp)"
             className={inputCls}
           />
-          <button className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          <button
+            disabled={availableCats.length === 0}
+            className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
             Buat
           </button>
         </div>
         {err && <p className="mt-2 text-sm text-destructive">{err}</p>}
       </form>
+
 
 
 

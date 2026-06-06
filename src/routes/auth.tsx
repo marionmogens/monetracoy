@@ -62,32 +62,33 @@ function AuthPage() {
           <span className="text-base font-semibold tracking-tight">Monetra</span>
         </Link>
 
-        <div className="relative z-10 space-y-8">
+        <div className="relative z-10 space-y-10">
           <h2 className="text-5xl font-semibold leading-[1.05] tracking-tight">
-            Atur uangmu.<br />
-            <span className="text-accent">Lebih ringan.</span>
+            Keuanganmu,<br />
+            <span className="text-accent">jelas tiap hari.</span>
           </h2>
-          <ul className="space-y-3 text-sm text-primary-foreground/85">
-            <li className="flex items-start gap-3">
-              <span className="mt-0.5 grid h-7 w-7 place-items-center rounded-lg bg-white/10 backdrop-blur">
-                <TrendingUp className="h-3.5 w-3.5" />
+          <ul className="space-y-4 text-sm text-primary-foreground/85">
+            <li className="flex items-center gap-3">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10 backdrop-blur">
+                <TrendingUp className="h-4 w-4" />
               </span>
-              Lacak harian, lihat tren bulanan.
+              <span className="leading-none">Lacak harian, lihat tren bulanan.</span>
             </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-0.5 grid h-7 w-7 place-items-center rounded-lg bg-white/10 backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5" />
+            <li className="flex items-center gap-3">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10 backdrop-blur">
+                <Sparkles className="h-4 w-4" />
               </span>
-              Asisten AI siap menjawab.
+              <span className="leading-none">Asisten AI siap menjawab.</span>
             </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-0.5 grid h-7 w-7 place-items-center rounded-lg bg-white/10 backdrop-blur">
-                <ShieldCheck className="h-3.5 w-3.5" />
+            <li className="flex items-center gap-3">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10 backdrop-blur">
+                <ShieldCheck className="h-4 w-4" />
               </span>
-              Aman & privasi terjaga.
+              <span className="leading-none">Aman & privasi terjaga.</span>
             </li>
           </ul>
         </div>
+
 
         <p className="relative z-10 text-xs text-primary-foreground/60">
           © {new Date().getFullYear()} Monetra
