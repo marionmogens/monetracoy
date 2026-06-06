@@ -552,6 +552,10 @@ function Dashboard() {
             </>
           )}
 
+          {view === "calendar" && <CalendarView />}
+
+
+
           {view === "ai" && (
             <>
               <div className="mb-6">
