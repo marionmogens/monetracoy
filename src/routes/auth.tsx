@@ -4,7 +4,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { signupUser, loginUser } from "@/lib/auth.functions";
 import { Logo } from "@/components/Logo";
-import { ArrowRight, Wallet } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).catch("signin"),
@@ -50,80 +50,88 @@ function AuthPage() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      {/* Left brand panel */}
-      <div className="relative hidden overflow-hidden bg-gradient-to-br from-primary via-primary to-accent p-12 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <Logo size={36} />
-          <span className="text-lg font-semibold tracking-tight">Monetra</span>
-        </Link>
-        <div className="space-y-5">
-          <Wallet className="h-10 w-10 opacity-80" />
-          <h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">
-            Mulai perjalanan keuanganmu yang lebih sehat.
-          </h2>
-          <p className="max-w-md text-primary-foreground/80">
-            Catat, pantau, dan dapatkan saran dari AI — semuanya dalam satu tempat yang rapi.
-          </p>
-        </div>
-        <p className="text-sm text-primary-foreground/70">
-          "Uang yang dikelola dengan baik memberikan kebebasan."
-        </p>
-        <div className="pointer-events-none absolute -bottom-20 -right-20 h-72 w-72 rounded-full bg-background/10 blur-3xl" />
-        <div className="pointer-events-none absolute -top-20 -left-20 h-72 w-72 rounded-full bg-accent/30 blur-3xl" />
-      </div>
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Ambient soft indigo wash + a single warm accent glow */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-background" />
+      <div className="pointer-events-none absolute -top-32 -left-32 -z-10 h-96 w-96 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -right-32 -z-10 h-[28rem] w-[28rem] rounded-full bg-accent/15 blur-3xl" />
 
-      {/* Right form panel */}
-      <div className="flex items-center justify-center p-6 sm:p-10">
-        <div className="w-full max-w-md">
-          <div className="mb-8 flex items-center justify-between lg:hidden">
-            <Link to="/" className="flex items-center gap-2">
-              <Logo size={32} />
-              <span className="font-semibold tracking-tight">Monetra</span>
+      <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
+        <Link to="/" className="flex items-center gap-2">
+          <Logo size={32} />
+          <span className="text-base font-semibold tracking-tight">Monetra</span>
+        </Link>
+
+        <div className="flex flex-1 flex-col justify-center">
+          <div className="mb-2 inline-flex w-fit rounded-full bg-primary-soft px-3 py-1 text-[11px] font-medium text-primary">
+            {isSignup ? "Akun baru" : "Selamat datang"}
+          </div>
+          <h1 className="text-4xl font-semibold leading-tight tracking-tight">
+            {isSignup ? (
+              <>
+                Atur uangmu.<br />
+                <span className="text-primary">Lebih ringan.</span>
+              </>
+            ) : (
+              <>
+                Lanjutkan,<br />
+                <span className="text-primary">kelola hari ini.</span>
+              </>
+            )}
+          </h1>
+
+          {/* Tab switch */}
+          <div className="mt-8 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+            <Link
+              to="/auth"
+              search={{ mode: "signin" }}
+              className={`rounded-full py-2 text-center text-sm font-medium transition ${
+                !isSignup ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              Masuk
+            </Link>
+            <Link
+              to="/auth"
+              search={{ mode: "signup" }}
+              className={`rounded-full py-2 text-center text-sm font-medium transition ${
+                isSignup ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              Daftar
             </Link>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {isSignup ? "Buat akun baru" : "Selamat datang kembali"}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {isSignup
-              ? "Hanya butuh 30 detik untuk mulai mengatur keuanganmu."
-              : "Masuk untuk lanjut mengelola keuanganmu."}
-          </p>
 
-          <form onSubmit={onSubmit} className="mt-8 space-y-4">
+          <form onSubmit={onSubmit} className="mt-6 space-y-3">
             {isSignup && (
-              <Field label="Nama">
-                <input
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-xl border border-input bg-card px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-                  placeholder="Nama lengkap"
-                />
-              </Field>
+              <input
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={fieldCls}
+                placeholder="Nama"
+                autoComplete="name"
+              />
             )}
-            <Field label="Email">
-              <input
-                required
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-input bg-card px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-                placeholder="kamu@email.com"
-              />
-            </Field>
-            <Field label="Password">
-              <input
-                required
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                minLength={6}
-                className="w-full rounded-xl border border-input bg-card px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-                placeholder="Minimal 6 karakter"
-              />
-            </Field>
+            <input
+              required
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={fieldCls}
+              placeholder="Email"
+              autoComplete="email"
+            />
+            <input
+              required
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={6}
+              className={fieldCls}
+              placeholder="Password"
+              autoComplete={isSignup ? "new-password" : "current-password"}
+            />
 
             {error && (
               <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
@@ -136,32 +144,19 @@ function AuthPage() {
               disabled={loading}
               className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-all"
             >
-              {loading ? "Memproses..." : isSignup ? "Daftar" : "Masuk"}
+              {loading ? "Memproses…" : isSignup ? "Buat akun" : "Masuk"}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
           </form>
-
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            {isSignup ? "Sudah punya akun?" : "Belum punya akun?"}{" "}
-            <Link
-              to="/auth"
-              search={{ mode: isSignup ? "signin" : "signup" }}
-              className="font-medium text-primary hover:underline"
-            >
-              {isSignup ? "Masuk" : "Daftar"}
-            </Link>
-          </p>
         </div>
+
+        <p className="text-center text-xs text-muted-foreground">
+          Dibuat dengan tenang. ✨
+        </p>
       </div>
     </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
-      {children}
-    </label>
-  );
-}
+const fieldCls =
+  "w-full rounded-xl border border-input bg-card px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition placeholder:text-muted-foreground";
