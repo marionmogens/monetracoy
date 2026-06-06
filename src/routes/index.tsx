@@ -138,13 +138,14 @@ function HeroMock() {
   const [chatIdx, setChatIdx] = useState(0);
 
   useEffect(() => {
-    const b = setInterval(() => setBarIdx((i) => (i + 1) % barSets.length), 3500);
-    const c = setInterval(() => setChatIdx((i) => (i + 1) % chats.length), 4500);
+    const b = setInterval(() => setBarIdx((i) => (i + 1) % barSets.length), 1400);
+    const c = setInterval(() => setChatIdx((i) => (i + 1) % chats.length), 1800);
     return () => {
       clearInterval(b);
       clearInterval(c);
     };
   }, []);
+
 
   const bars = barSets[barIdx];
   const chat = chats[chatIdx];

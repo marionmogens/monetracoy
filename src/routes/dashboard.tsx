@@ -29,7 +29,13 @@ import {
   FileText,
   FileSpreadsheet,
   User as UserIcon,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  Bell,
+  Check,
 } from "lucide-react";
+
 
 import { getCurrentUser, logoutUser } from "@/lib/auth.functions";
 import {
@@ -43,7 +49,9 @@ import {
   exportMonthlyData,
 } from "@/lib/finance.functions";
 import { createWallet, adjustWallet, deleteWallet } from "@/lib/wallets.functions";
+import { listReminders, createReminder, toggleReminder, deleteReminder } from "@/lib/reminders.functions";
 import { chatFinance } from "@/lib/chat.functions";
+
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
 import { updateProfile } from "@/lib/profile.functions";
@@ -90,7 +98,7 @@ function Dashboard() {
   const [showCat, setShowCat] = useState(false);
   const [showLimit, setShowLimit] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [view, setView] = useState<"overview" | "transactions" | "wallets" | "categories" | "ai">("overview");
+  const [view, setView] = useState<"overview" | "transactions" | "wallets" | "categories" | "calendar" | "ai">("overview");
   const [txSearch, setTxSearch] = useState("");
   const [txType, setTxType] = useState<"all" | "income" | "expense">("all");
   const [txCategory, setTxCategory] = useState<string>("all");
@@ -216,8 +224,10 @@ function Dashboard() {
     { id: "transactions", label: "Transaksi", icon: ListOrdered },
     { id: "wallets", label: "Dompet", icon: Wallet },
     { id: "categories", label: "Kategori", icon: Tags },
+    { id: "calendar", label: "Kalender", icon: CalendarIcon },
     { id: "ai", label: "Monetra AI", icon: Bot },
   ] as const;
+
 
   const filteredTx = useMemo(() => {
     if (!data) return [];
@@ -541,6 +551,10 @@ function Dashboard() {
               </div>
             </>
           )}
+
+          {view === "calendar" && <CalendarView />}
+
+
 
           {view === "ai" && (
             <>
@@ -1174,10 +1188,8 @@ function WalletsView({
   const adjust = useServerFn(adjustWallet);
   const del = useServerFn(deleteWallet);
   const router = useRouter();
-  const usedCategoryIds = new Set(wallets.map((w) => w.categoryId).filter(Boolean) as string[]);
-  const availableCategories = categories.filter(
-    (c) => c.type === "expense" && !usedCategoryIds.has(c.id),
-  );
+  const expenseCats = categories.filter((c) => c.type === "expense");
+  const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [initial, setInitial] = useState("");
   const [err, setErr] = useState("");
@@ -1190,12 +1202,19 @@ function WalletsView({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
-    if (!categoryId) {
-      setErr("Pilih kategori dulu");
+    if (!name.trim()) {
+      setErr("Nama dompet wajib diisi");
       return;
     }
     try {
-      await create({ data: { categoryId, initialBalance: Number(initial) || 0 } });
+      await create({
+        data: {
+          name: name.trim(),
+          initialBalance: Number(initial) || 0,
+          categoryId: categoryId || null,
+        },
+      });
+      setName("");
       setCategoryId("");
       setInitial("");
       await refresh();
@@ -1235,9 +1254,9 @@ function WalletsView({
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Dompet Kategori</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Dompet</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Setiap dompet terhubung ke satu kategori pengeluaran. Total dialokasikan:{" "}
+          Total dialokasikan:{" "}
           <span className="font-medium text-foreground">Rp {Math.round(total).toLocaleString("id-ID")}</span>
         </p>
       </div>
@@ -1245,17 +1264,19 @@ function WalletsView({
       <form onSubmit={submit} className="mb-6 rounded-3xl border border-border bg-card p-6">
         <h3 className="text-sm font-semibold tracking-tight">Buat dompet baru</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Pilih kategori pengeluaran yang sudah ada. Satu kategori = satu dompet.
+          Beri nama dompet & saldo awal. Kategori opsional — kalau diisi, transaksi dari dompet ini terkunci ke kategori tersebut.
         </p>
-        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_200px_auto]">
-          <select
+        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_180px_auto]">
+          <input
             required
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nama dompet (cth: Tabungan)"
             className={inputCls}
-          >
-            <option value="">Pilih kategori…</option>
-            {availableCategories.map((c) => (
+          />
+          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
+            <option value="">Tanpa kategori (opsional)</option>
+            {expenseCats.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -1269,20 +1290,14 @@ function WalletsView({
             placeholder="Saldo awal (Rp)"
             className={inputCls}
           />
-          <button
-            disabled={availableCategories.length === 0}
-            className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
+          <button className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
             Buat
           </button>
         </div>
-        {availableCategories.length === 0 && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Semua kategori pengeluaran sudah punya dompet, atau belum ada kategori pengeluaran. Tambah kategori dulu di tab Kategori.
-          </p>
-        )}
         {err && <p className="mt-2 text-sm text-destructive">{err}</p>}
       </form>
+
+
 
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -1451,5 +1466,329 @@ function ProfileModal({
         </button>
       </form>
     </Modal>
+  );
+}
+
+function CalendarView() {
+  const list = useServerFn(listReminders);
+  const create = useServerFn(createReminder);
+  const toggle = useServerFn(toggleReminder);
+  const del = useServerFn(deleteReminder);
+
+  const { data: reminders, refetch } = useQuery({
+    queryKey: ["reminders"],
+    queryFn: () => list(),
+  });
+
+  const today = new Date();
+  const [cursor, setCursor] = useState({ year: today.getFullYear(), month: today.getMonth() });
+  const [selected, setSelected] = useState<string>(today.toISOString().slice(0, 10));
+  const [title, setTitle] = useState("");
+  const [note, setNote] = useState("");
+  const [amount, setAmount] = useState("");
+  const [err, setErr] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const monthName = new Date(cursor.year, cursor.month, 1).toLocaleDateString("id-ID", {
+    month: "long",
+    year: "numeric",
+  });
+
+  const firstDay = new Date(cursor.year, cursor.month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7; // make Monday=0
+  const daysInMonth = new Date(cursor.year, cursor.month + 1, 0).getDate();
+  const cells: Array<{ dateStr: string | null; day: number | null }> = [];
+  for (let i = 0; i < startOffset; i++) cells.push({ dateStr: null, day: null });
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    cells.push({ dateStr, day: d });
+  }
+  while (cells.length % 7 !== 0) cells.push({ dateStr: null, day: null });
+
+  const byDate: Record<string, Array<{ id: string; title: string; done: boolean; amount: number | null }>> = {};
+  for (const r of reminders || []) {
+    (byDate[r.dueDate] = byDate[r.dueDate] || []).push({
+      id: r.id,
+      title: r.title,
+      done: r.done,
+      amount: r.amount,
+    });
+  }
+  const selectedItems = (reminders || []).filter((r) => r.dueDate === selected);
+
+  function prev() {
+    setCursor((c) => (c.month === 0 ? { year: c.year - 1, month: 11 } : { ...c, month: c.month - 1 }));
+  }
+  function next() {
+    setCursor((c) => (c.month === 11 ? { year: c.year + 1, month: 0 } : { ...c, month: c.month + 1 }));
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim()) return;
+    setErr("");
+    setSaving(true);
+    try {
+      await create({
+        data: {
+          title: title.trim(),
+          note: note.trim() || null,
+          amount: amount ? Number(amount) : null,
+          dueDate: selected,
+        },
+      });
+      setTitle("");
+      setNote("");
+      setAmount("");
+      await refetch();
+    } catch (e: any) {
+      setErr(e?.message || "Gagal menyimpan");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onToggle(id: string, done: boolean) {
+    await toggle({ data: { id, done } });
+    await refetch();
+  }
+  async function onDelete(id: string) {
+    if (!confirm("Hapus pengingat ini?")) return;
+    await del({ data: { id } });
+    await refetch();
+  }
+
+  const upcoming = (reminders || [])
+    .filter((r) => !r.done && r.dueDate >= today.toISOString().slice(0, 10))
+    .slice(0, 5);
+
+  return (
+    <>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Kalender & Pengingat</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tandai tanggal bayar tagihan, cicilan, atau target lain.
+          </p>
+        </div>
+        {upcoming.length > 0 && (
+          <div className="hidden md:flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1.5 text-xs font-medium text-foreground">
+            <Bell className="h-3.5 w-3.5 text-accent-foreground" />
+            {upcoming.length} pengingat mendatang
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        {/* Calendar */}
+        <div className="rounded-3xl border border-border bg-card p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-base font-semibold capitalize tracking-tight">{monthName}</h2>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={prev}
+                className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-muted"
+                aria-label="Bulan sebelumnya"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => {
+                  const n = new Date();
+                  setCursor({ year: n.getFullYear(), month: n.getMonth() });
+                  setSelected(n.toISOString().slice(0, 10));
+                }}
+                className="rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted"
+              >
+                Hari ini
+              </button>
+              <button
+                onClick={next}
+                className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-muted"
+                aria-label="Bulan berikutnya"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d) => (
+              <div key={d} className="py-2">
+                {d}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {cells.map((c, i) => {
+              if (!c.dateStr) return <div key={i} className="aspect-square" />;
+              const items = byDate[c.dateStr] || [];
+              const isSelected = c.dateStr === selected;
+              const isToday = c.dateStr === today.toISOString().slice(0, 10);
+              const allDone = items.length > 0 && items.every((x) => x.done);
+              return (
+                <button
+                  key={c.dateStr}
+                  onClick={() => setSelected(c.dateStr!)}
+                  className={`group relative flex aspect-square flex-col items-center justify-start gap-1 rounded-xl border p-1.5 text-xs transition ${
+                    isSelected
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-background hover:border-primary/40 hover:bg-muted/60"
+                  }`}
+                >
+                  <span
+                    className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] ${
+                      isToday ? "bg-primary text-primary-foreground font-semibold" : ""
+                    }`}
+                  >
+                    {c.day}
+                  </span>
+                  {items.length > 0 && (
+                    <div className="flex flex-wrap items-center justify-center gap-0.5">
+                      {items.slice(0, 3).map((it) => (
+                        <span
+                          key={it.id}
+                          className={`block h-1.5 w-1.5 rounded-full ${
+                            it.done ? "bg-success/70" : "bg-accent"
+                          }`}
+                        />
+                      ))}
+                      {items.length > 3 && (
+                        <span className="text-[8px] text-muted-foreground">+{items.length - 3}</span>
+                      )}
+                    </div>
+                  )}
+                  {allDone && (
+                    <span className="absolute right-1 top-1 text-success">
+                      <Check className="h-3 w-3" />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Side panel */}
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-border bg-card p-5">
+            <h3 className="text-sm font-semibold tracking-tight">
+              Tambah pengingat untuk{" "}
+              <span className="text-primary">
+                {new Date(selected).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            </h3>
+            <form onSubmit={submit} className="mt-3 space-y-2">
+              <input
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Judul (cth: Bayar listrik)"
+                className={inputCls}
+              />
+              <input
+                type="number"
+                min="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Nominal (opsional)"
+                className={inputCls}
+              />
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Catatan (opsional)"
+                rows={2}
+                className={inputCls + " resize-none"}
+              />
+              {err && <p className="text-xs text-destructive">{err}</p>}
+              <button
+                disabled={saving}
+                className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {saving ? "Menyimpan…" : "Simpan pengingat"}
+              </button>
+            </form>
+          </div>
+
+          <div className="rounded-3xl border border-border bg-card p-5">
+            <h3 className="text-sm font-semibold tracking-tight">
+              Pengingat tanggal ini
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                ({selectedItems.length})
+              </span>
+            </h3>
+            <div className="mt-3 space-y-2">
+              {selectedItems.length === 0 && (
+                <p className="text-xs text-muted-foreground">Belum ada pengingat di tanggal ini.</p>
+              )}
+              {selectedItems.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-start gap-2 rounded-xl border border-border bg-background p-3"
+                >
+                  <button
+                    onClick={() => onToggle(r.id, !r.done)}
+                    className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${
+                      r.done
+                        ? "border-success bg-success text-success-foreground"
+                        : "border-border hover:border-primary"
+                    }`}
+                    aria-label="Tandai selesai"
+                  >
+                    {r.done && <Check className="h-3 w-3 text-white" />}
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={`text-sm font-medium ${
+                        r.done ? "text-muted-foreground line-through" : ""
+                      }`}
+                    >
+                      {r.title}
+                    </p>
+                    {r.amount != null && (
+                      <p className="text-xs text-muted-foreground">
+                        Rp {Math.round(r.amount).toLocaleString("id-ID")}
+                      </p>
+                    )}
+                    {r.note && <p className="mt-0.5 text-xs text-muted-foreground">{r.note}</p>}
+                  </div>
+                  <button
+                    onClick={() => onDelete(r.id)}
+                    className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {upcoming.length > 0 && (
+            <div className="rounded-3xl border border-border bg-card p-5">
+              <h3 className="text-sm font-semibold tracking-tight">Mendatang</h3>
+              <ul className="mt-3 space-y-2">
+                {upcoming.map((r) => (
+                  <li key={r.id} className="flex items-center gap-2 text-xs">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                    <span className="flex-1 truncate">{r.title}</span>
+                    <span className="text-muted-foreground">
+                      {new Date(r.dueDate).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
