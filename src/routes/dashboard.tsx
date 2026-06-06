@@ -555,6 +555,7 @@ function Dashboard() {
       </div>
 
       {showAdd && data && <AddTxModal categories={data.categories} wallets={data.wallets} onClose={() => setShowAdd(false)} />}
+
       {showCat && data && <CategoryModal categories={data.categories} onClose={() => setShowCat(false)} />}
       {showLimit && data && <LimitModal current={data.user.dailyLimit} onClose={() => setShowLimit(false)} />}
       {showProfile && data && (
