@@ -49,6 +49,47 @@ export type Database = {
           },
         ]
       }
+      monetra_reminders: {
+        Row: {
+          amount: number | null
+          created_at: string
+          done: boolean
+          due_date: string
+          id: string
+          note: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          done?: boolean
+          due_date: string
+          id?: string
+          note?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          done?: boolean
+          due_date?: string
+          id?: string
+          note?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monetra_reminders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "monetra_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monetra_savings_goals: {
         Row: {
           color: string
