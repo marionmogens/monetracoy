@@ -34,9 +34,10 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(async 
       .order("name"),
     supabaseAdmin
       .from("monetra_wallets")
-      .select("id, name, balance, color, icon")
+      .select("id, name, balance, color, icon, category_id")
       .eq("user_id", userId)
       .order("created_at"),
+
   ]);
 
   if (userRes.error || !userRes.data) throw new Error(userRes.error?.message || "User tidak ditemukan");
