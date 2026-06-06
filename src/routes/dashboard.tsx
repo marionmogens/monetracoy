@@ -528,7 +528,7 @@ function Dashboard() {
             </>
           )}
 
-          {data && view === "wallets" && <WalletsView wallets={data.wallets} />}
+          {data && view === "wallets" && <WalletsView wallets={data.wallets} categories={data.categories} />}
 
           {data && view === "categories" && (
             <>
