@@ -280,17 +280,19 @@ function Dashboard() {
           </button>
         </nav>
         <div className="mt-auto space-y-3 border-t border-border pt-4">
-          <button
-            onClick={() => setShowProfile(true)}
-            className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition hover:bg-muted"
-          >
-            <Avatar name={user.name} url={data?.user?.avatarUrl ?? null} size={36} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{user.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-            </div>
+          <div className="flex items-center gap-2 rounded-xl p-2 transition hover:bg-muted">
+            <button
+              onClick={() => setShowProfile(true)}
+              className="flex min-w-0 flex-1 items-center gap-3 text-left"
+            >
+              <Avatar name={user.name} url={data?.user?.avatarUrl ?? null} size={36} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{user.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+              </div>
+            </button>
             <ThemeToggle />
-          </button>
+          </div>
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
@@ -298,6 +300,7 @@ function Dashboard() {
             <LogOut className="h-4 w-4" /> Keluar
           </button>
         </div>
+
       </aside>
 
       {/* Main */}
