@@ -101,17 +101,22 @@ export const addTransaction = createServerFn({ method: "POST" })
     const userId = await requireUserId();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // If wallet is set, adjust its balance (expense reduces, income tops up)
+    let categoryId = data.categoryId || null;
+
+    // If wallet is set, adjust its balance and force its linked category
     if (data.walletId) {
       const { data: w, error: wErr } = await supabaseAdmin
         .from("monetra_wallets")
-        .select("id, balance")
+        .select("id, balance, category_id")
         .eq("id", data.walletId)
         .eq("user_id", userId)
         .maybeSingle();
       if (wErr || !w) throw new Error(wErr?.message || "Dompet tidak ditemukan");
+      // Wallet drives the category — ignore client-supplied categoryId
+      categoryId = (w.category_id as string | null) ?? categoryId;
       const delta = data.type === "expense" ? -data.amount : data.amount;
       const newBal = Number(w.balance) + delta;
+      if (newBal < 0) throw new Error("Saldo dompet tidak cukup");
       const { error: uErr } = await supabaseAdmin
         .from("monetra_wallets")
         .update({ balance: newBal })
@@ -122,7 +127,7 @@ export const addTransaction = createServerFn({ method: "POST" })
 
     const { error } = await supabaseAdmin.from("monetra_transactions").insert({
       user_id: userId,
-      category_id: data.categoryId || null,
+      category_id: categoryId,
       wallet_id: data.walletId || null,
       type: data.type,
       amount: data.amount,
@@ -132,6 +137,7 @@ export const addTransaction = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const deleteTransaction = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
