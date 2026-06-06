@@ -98,7 +98,7 @@ function Dashboard() {
   const [showCat, setShowCat] = useState(false);
   const [showLimit, setShowLimit] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [view, setView] = useState<"overview" | "transactions" | "wallets" | "categories" | "ai">("overview");
+  const [view, setView] = useState<"overview" | "transactions" | "wallets" | "categories" | "calendar" | "ai">("overview");
   const [txSearch, setTxSearch] = useState("");
   const [txType, setTxType] = useState<"all" | "income" | "expense">("all");
   const [txCategory, setTxCategory] = useState<string>("all");
