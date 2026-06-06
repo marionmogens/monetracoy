@@ -25,8 +25,10 @@ async function getAvailableFunds(userId: string) {
 }
 
 const createSchema = z.object({
-  categoryId: z.string().uuid(),
+  name: z.string().min(1).max(60),
   initialBalance: z.number().min(0).max(1_000_000_000),
+  categoryId: z.string().uuid().optional().nullable(),
+  color: z.string().max(20).optional(),
 });
 
 const rupiah = (n: number) => "Rp " + Math.round(n).toLocaleString("id-ID");
@@ -37,45 +39,24 @@ export const createWallet = createServerFn({ method: "POST" })
     const userId = await requireUserId();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Load category (must belong to user) and prevent duplicates
-    const { data: cat, error: catErr } = await supabaseAdmin
-      .from("monetra_categories")
-      .select("id, name, color, type")
-      .eq("id", data.categoryId)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (catErr || !cat) throw new Error("Kategori tidak ditemukan");
-
-    const { data: existing } = await supabaseAdmin
-      .from("monetra_wallets")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("category_id", data.categoryId)
-      .maybeSingle();
-    if (existing) throw new Error("Dompet untuk kategori ini sudah ada");
-
     const avail = await getAvailableFunds(userId);
-    if (avail <= 0) {
+    if (data.initialBalance > 0 && data.initialBalance > avail) {
       throw new Error(
-        "Tidak ada dana yang bisa dialokasikan. Tambahkan pemasukan dulu sebelum membuat dompet."
-      );
-    }
-    if (data.initialBalance > avail) {
-      throw new Error(
-        `Saldo awal melebihi dana tersedia (${rupiah(avail)}). Kurangi nominalnya atau tambahkan pemasukan.`
+        `Saldo awal melebihi dana tersedia (${rupiah(avail)}). Tambah pemasukan dulu atau kurangi nominalnya.`
       );
     }
     const { error } = await supabaseAdmin.from("monetra_wallets").insert({
       user_id: userId,
-      category_id: data.categoryId,
-      name: cat.name,
+      category_id: data.categoryId || null,
+      name: data.name,
       balance: data.initialBalance,
-      color: cat.color,
+      color: data.color || "#3b4cca",
       icon: "wallet",
     });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 
 const topUpSchema = z.object({
