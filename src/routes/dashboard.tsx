@@ -1174,10 +1174,8 @@ function WalletsView({
   const adjust = useServerFn(adjustWallet);
   const del = useServerFn(deleteWallet);
   const router = useRouter();
-  const usedCategoryIds = new Set(wallets.map((w) => w.categoryId).filter(Boolean) as string[]);
-  const availableCategories = categories.filter(
-    (c) => c.type === "expense" && !usedCategoryIds.has(c.id),
-  );
+  const expenseCats = categories.filter((c) => c.type === "expense");
+  const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [initial, setInitial] = useState("");
   const [err, setErr] = useState("");
@@ -1190,12 +1188,19 @@ function WalletsView({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
-    if (!categoryId) {
-      setErr("Pilih kategori dulu");
+    if (!name.trim()) {
+      setErr("Nama dompet wajib diisi");
       return;
     }
     try {
-      await create({ data: { categoryId, initialBalance: Number(initial) || 0 } });
+      await create({
+        data: {
+          name: name.trim(),
+          initialBalance: Number(initial) || 0,
+          categoryId: categoryId || null,
+        },
+      });
+      setName("");
       setCategoryId("");
       setInitial("");
       await refresh();
@@ -1235,9 +1240,9 @@ function WalletsView({
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Dompet Kategori</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Dompet</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Setiap dompet terhubung ke satu kategori pengeluaran. Total dialokasikan:{" "}
+          Total dialokasikan:{" "}
           <span className="font-medium text-foreground">Rp {Math.round(total).toLocaleString("id-ID")}</span>
         </p>
       </div>
@@ -1245,17 +1250,19 @@ function WalletsView({
       <form onSubmit={submit} className="mb-6 rounded-3xl border border-border bg-card p-6">
         <h3 className="text-sm font-semibold tracking-tight">Buat dompet baru</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Pilih kategori pengeluaran yang sudah ada. Satu kategori = satu dompet.
+          Beri nama dompet & saldo awal. Kategori opsional — kalau diisi, transaksi dari dompet ini terkunci ke kategori tersebut.
         </p>
-        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_200px_auto]">
-          <select
+        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_180px_auto]">
+          <input
             required
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nama dompet (cth: Tabungan)"
             className={inputCls}
-          >
-            <option value="">Pilih kategori…</option>
-            {availableCategories.map((c) => (
+          />
+          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
+            <option value="">Tanpa kategori (opsional)</option>
+            {expenseCats.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -1269,20 +1276,14 @@ function WalletsView({
             placeholder="Saldo awal (Rp)"
             className={inputCls}
           />
-          <button
-            disabled={availableCategories.length === 0}
-            className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
+          <button className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
             Buat
           </button>
         </div>
-        {availableCategories.length === 0 && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Semua kategori pengeluaran sudah punya dompet, atau belum ada kategori pengeluaran. Tambah kategori dulu di tab Kategori.
-          </p>
-        )}
         {err && <p className="mt-2 text-sm text-destructive">{err}</p>}
       </form>
+
+
 
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
