@@ -1163,14 +1163,23 @@ function ChatInline() {
 }
 
 
-function WalletsView({ wallets }: { wallets: Array<{ id: string; name: string; balance: number; color: string }> }) {
+function WalletsView({
+  wallets,
+  categories,
+}: {
+  wallets: Array<{ id: string; name: string; balance: number; color: string; categoryId: string | null }>;
+  categories: Array<{ id: string; name: string; type: "income" | "expense"; color: string }>;
+}) {
   const create = useServerFn(createWallet);
   const adjust = useServerFn(adjustWallet);
   const del = useServerFn(deleteWallet);
   const router = useRouter();
-  const [name, setName] = useState("");
+  const usedCategoryIds = new Set(wallets.map((w) => w.categoryId).filter(Boolean) as string[]);
+  const availableCategories = categories.filter(
+    (c) => c.type === "expense" && !usedCategoryIds.has(c.id),
+  );
+  const [categoryId, setCategoryId] = useState<string>("");
   const [initial, setInitial] = useState("");
-  const [color, setColor] = useState("#6366f1");
   const [err, setErr] = useState("");
 
   async function refresh() {
@@ -1181,9 +1190,13 @@ function WalletsView({ wallets }: { wallets: Array<{ id: string; name: string; b
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
+    if (!categoryId) {
+      setErr("Pilih kategori dulu");
+      return;
+    }
     try {
-      await create({ data: { name, initialBalance: Number(initial) || 0, color, icon: "wallet" } });
-      setName("");
+      await create({ data: { categoryId, initialBalance: Number(initial) || 0 } });
+      setCategoryId("");
       setInitial("");
       await refresh();
     } catch (e: any) {
@@ -1224,21 +1237,30 @@ function WalletsView({ wallets }: { wallets: Array<{ id: string; name: string; b
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Dompet Kategori</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Pisahkan saldo untuk belanja, makan, kebutuhan, dll. Total dialokasikan:{" "}
+          Setiap dompet terhubung ke satu kategori pengeluaran. Total dialokasikan:{" "}
           <span className="font-medium text-foreground">Rp {Math.round(total).toLocaleString("id-ID")}</span>
         </p>
       </div>
 
       <form onSubmit={submit} className="mb-6 rounded-3xl border border-border bg-card p-6">
         <h3 className="text-sm font-semibold tracking-tight">Buat dompet baru</h3>
-        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_180px_60px_auto]">
-          <input
+        <p className="mt-1 text-xs text-muted-foreground">
+          Pilih kategori pengeluaran yang sudah ada. Satu kategori = satu dompet.
+        </p>
+        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_200px_auto]">
+          <select
             required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nama (mis. Belanja)"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
             className={inputCls}
-          />
+          >
+            <option value="">Pilih kategori…</option>
+            {availableCategories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
           <input
             type="number"
             min="0"
@@ -1247,18 +1269,21 @@ function WalletsView({ wallets }: { wallets: Array<{ id: string; name: string; b
             placeholder="Saldo awal (Rp)"
             className={inputCls}
           />
-          <input
-            type="color"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            className="h-10 w-full rounded-xl border border-input"
-          />
-          <button className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          <button
+            disabled={availableCategories.length === 0}
+            className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
             Buat
           </button>
         </div>
+        {availableCategories.length === 0 && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Semua kategori pengeluaran sudah punya dompet, atau belum ada kategori pengeluaran. Tambah kategori dulu di tab Kategori.
+          </p>
+        )}
         {err && <p className="mt-2 text-sm text-destructive">{err}</p>}
       </form>
+
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {wallets.map((w) => (
