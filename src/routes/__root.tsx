@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Monetra" },
+      { name: "description", content: "Monetra Wallet Manager is a personal finance application for tracking income and expenses." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Monetra" },
+      { property: "og:description", content: "Monetra Wallet Manager is a personal finance application for tracking income and expenses." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Monetra" },
+      { name: "twitter:description", content: "Monetra Wallet Manager is a personal finance application for tracking income and expenses." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d48500e6-008b-45f5-84f3-94e02f65f467/id-preview-f8a9be08--cc3544fc-1dfe-41c7-a92f-a4feaa867be2.lovable.app-1780649071265.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d48500e6-008b-45f5-84f3-94e02f65f467/id-preview-f8a9be08--cc3544fc-1dfe-41c7-a92f-a4feaa867be2.lovable.app-1780649071265.png" },
     ],
     links: [
       {
