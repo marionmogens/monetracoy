@@ -66,7 +66,9 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(async 
       balance: Number(w.balance),
       color: w.color as string,
       icon: w.icon as string,
+      categoryId: (w.category_id as string | null) ?? null,
     })),
+
     transactions: (txRes.data || []).map((t: any) => {
       const cat = Array.isArray(t.monetra_categories) ? t.monetra_categories[0] : t.monetra_categories;
       return {
