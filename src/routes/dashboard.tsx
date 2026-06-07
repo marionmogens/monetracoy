@@ -787,16 +787,49 @@ function AddTxModal({
           className={inputCls}
         />
         {wallets.length > 0 && (
-          <select value={walletId} onChange={(e) => setWalletId(e.target.value)} className={inputCls}>
-            <option value="">
-              {type === "expense" ? "Tanpa dompet (dari saldo total)" : "Tanpa dompet"}
-            </option>
-            {wallets.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.name} — Rp {Math.round(w.balance).toLocaleString("id-ID")}
-              </option>
-            ))}
-          </select>
+          <div>
+            <p className="mb-1.5 text-xs font-medium text-muted-foreground">Dompet</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <button
+                type="button"
+                onClick={() => setWalletId("")}
+                className={`flex flex-col items-start gap-1 rounded-xl border p-2.5 text-left transition ${
+                  walletId === ""
+                    ? "border-primary bg-primary-soft/50 ring-2 ring-primary/20"
+                    : "border-border bg-card hover:border-primary/40"
+                }`}
+              >
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-muted text-muted-foreground">
+                  <Wallet className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-xs font-medium">Tanpa dompet</span>
+                <span className="text-[10px] text-muted-foreground">Dari saldo total</span>
+              </button>
+              {wallets.map((w) => (
+                <button
+                  key={w.id}
+                  type="button"
+                  onClick={() => setWalletId(w.id)}
+                  className={`flex flex-col items-start gap-1 rounded-xl border p-2.5 text-left transition ${
+                    walletId === w.id
+                      ? "border-primary bg-primary-soft/50 ring-2 ring-primary/20"
+                      : "border-border bg-card hover:border-primary/40"
+                  }`}
+                >
+                  <span
+                    className="grid h-7 w-7 place-items-center rounded-lg text-[11px] font-semibold"
+                    style={{ background: ((w as any).color || "#64748b") + "22", color: (w as any).color || "#64748b" }}
+                  >
+                    {w.name.slice(0, 1)}
+                  </span>
+                  <span className="truncate text-xs font-medium">{w.name}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    Rp {Math.round(w.balance).toLocaleString("id-ID")}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
         {selectedWallet ? (
           <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm">
@@ -810,14 +843,38 @@ function AddTxModal({
             <span className="ml-auto text-xs text-muted-foreground">terkunci ke dompet</span>
           </div>
         ) : (
-          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
-            <option value="">Tanpa kategori (dari saldo total)</option>
-            {filtered.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <div>
+            <p className="mb-1.5 text-xs font-medium text-muted-foreground">Kategori</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <button
+                type="button"
+                onClick={() => setCategoryId("")}
+                className={`flex items-center gap-2 rounded-xl border p-2.5 text-left transition ${
+                  categoryId === ""
+                    ? "border-primary bg-primary-soft/50 ring-2 ring-primary/20"
+                    : "border-border bg-card hover:border-primary/40"
+                }`}
+              >
+                <span className="grid h-6 w-6 place-items-center rounded-md bg-muted text-muted-foreground text-[10px]">∅</span>
+                <span className="text-xs font-medium">Tanpa kategori</span>
+              </button>
+              {filtered.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategoryId(c.id)}
+                  className={`flex items-center gap-2 rounded-xl border p-2.5 text-left transition ${
+                    categoryId === c.id
+                      ? "border-primary bg-primary-soft/50 ring-2 ring-primary/20"
+                      : "border-border bg-card hover:border-primary/40"
+                  }`}
+                >
+                  <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: c.color }} />
+                  <span className="truncate text-xs font-medium">{c.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
         <input
           value={note}
