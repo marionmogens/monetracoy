@@ -715,20 +715,27 @@ function AddTxModal({
 }) {
   const add = useServerFn(addTransaction);
   const router = useRouter();
+  const [step, setStep] = useState<1 | 2>(1);
+  const [walletId, setWalletId] = useState<string>("");
   const [type, setType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
-  const [walletId, setWalletId] = useState<string>("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(today());
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const filtered = categories.filter((c) => c.type === type);
 
   const selectedWallet = wallets.find((w) => w.id === walletId) || null;
   const lockedCategoryId = selectedWallet?.categoryId ?? null;
   const lockedCategory = lockedCategoryId ? categories.find((c) => c.id === lockedCategoryId) : null;
-  const effectiveCategoryId = lockedCategoryId ?? categoryId;
+  const filteredCats = categories.filter((c) => c.type === type);
+
+  function pick(id: string) {
+    setWalletId(id);
+    setCategoryId("");
+    if (id) setType("expense");
+    setStep(2);
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -739,7 +746,7 @@ function AddTxModal({
         data: {
           type,
           amount: Number(amount),
-          categoryId: effectiveCategoryId || null,
+          categoryId: (lockedCategoryId ?? categoryId) || null,
           walletId: walletId || null,
           note,
           occurredAt: date,
@@ -755,8 +762,66 @@ function AddTxModal({
     }
   }
 
+  if (step === 1) {
+    return (
+      <Modal title="Transaksi baru" onClose={onClose}>
+        <p className="mb-3 text-xs text-muted-foreground">Pilih sumber dana untuk transaksi ini.</p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => pick("")}
+            className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3 text-left transition hover:border-primary/50 hover:bg-primary-soft/30"
+          >
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary-soft text-primary">
+              <Wallet className="h-5 w-5" />
+            </span>
+            <span className="flex-1">
+              <span className="block text-sm font-semibold">Rekening utama</span>
+              <span className="block text-[11px] text-muted-foreground">Saldo total · bebas kategori</span>
+            </span>
+          </button>
+          {wallets.map((w) => {
+            const cat = categories.find((c) => c.id === w.categoryId);
+            return (
+              <button
+                key={w.id}
+                type="button"
+                onClick={() => pick(w.id)}
+                className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3 text-left transition hover:border-primary/50 hover:bg-primary-soft/30"
+              >
+                <span
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-sm font-semibold"
+                  style={{ background: ((w as any).color || "#64748b") + "22", color: (w as any).color || "#64748b" }}
+                >
+                  {w.name.slice(0, 1)}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">{w.name}</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    Rp {Math.round(w.balance).toLocaleString("id-ID")}
+                    {cat ? ` · ${cat.name}` : ""}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </Modal>
+    );
+  }
+
   return (
-    <Modal title="Transaksi baru" onClose={onClose}>
+    <Modal
+      title={selectedWallet ? `Dompet · ${selectedWallet.name}` : "Rekening utama"}
+      onClose={onClose}
+    >
+      <button
+        type="button"
+        onClick={() => setStep(1)}
+        className="mb-3 text-xs text-muted-foreground hover:text-foreground"
+      >
+        ← Ganti sumber
+      </button>
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted p-1">
           {(["expense", "income"] as const).map((t) => (
@@ -766,7 +831,6 @@ function AddTxModal({
               onClick={() => {
                 setType(t);
                 setCategoryId("");
-                setWalletId("");
               }}
               className={`rounded-lg py-1.5 text-sm font-medium transition ${
                 type === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
@@ -776,61 +840,20 @@ function AddTxModal({
             </button>
           ))}
         </div>
-        <input
-          required
-          type="number"
-          min="0"
-          step="any"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Jumlah (Rp)"
-          className={inputCls}
-        />
-        {wallets.length > 0 && (
-          <div>
-            <p className="mb-1.5 text-xs font-medium text-muted-foreground">Dompet</p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              <button
-                type="button"
-                onClick={() => setWalletId("")}
-                className={`flex flex-col items-start gap-1 rounded-xl border p-2.5 text-left transition ${
-                  walletId === ""
-                    ? "border-primary bg-primary-soft/50 ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/40"
-                }`}
-              >
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-muted text-muted-foreground">
-                  <Wallet className="h-3.5 w-3.5" />
-                </span>
-                <span className="text-xs font-medium">Tanpa dompet</span>
-                <span className="text-[10px] text-muted-foreground">Dari saldo total</span>
-              </button>
-              {wallets.map((w) => (
-                <button
-                  key={w.id}
-                  type="button"
-                  onClick={() => setWalletId(w.id)}
-                  className={`flex flex-col items-start gap-1 rounded-xl border p-2.5 text-left transition ${
-                    walletId === w.id
-                      ? "border-primary bg-primary-soft/50 ring-2 ring-primary/20"
-                      : "border-border bg-card hover:border-primary/40"
-                  }`}
-                >
-                  <span
-                    className="grid h-7 w-7 place-items-center rounded-lg text-[11px] font-semibold"
-                    style={{ background: ((w as any).color || "#64748b") + "22", color: (w as any).color || "#64748b" }}
-                  >
-                    {w.name.slice(0, 1)}
-                  </span>
-                  <span className="truncate text-xs font-medium">{w.name}</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    Rp {Math.round(w.balance).toLocaleString("id-ID")}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="grid grid-cols-[1fr_140px] gap-2">
+          <input
+            required
+            type="number"
+            min="0"
+            step="any"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Jumlah (Rp)"
+            className={inputCls}
+          />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
+        </div>
+
         {selectedWallet ? (
           <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm">
             <span className="text-muted-foreground">Kategori:</span>
@@ -840,49 +863,48 @@ function AddTxModal({
               )}
               {lockedCategory?.name ?? "Tanpa kategori"}
             </span>
-            <span className="ml-auto text-xs text-muted-foreground">terkunci ke dompet</span>
+            <span className="ml-auto text-xs text-muted-foreground">otomatis dari dompet</span>
           </div>
         ) : (
           <div>
             <p className="mb-1.5 text-xs font-medium text-muted-foreground">Kategori</p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => setCategoryId("")}
-                className={`flex items-center gap-2 rounded-xl border p-2.5 text-left transition ${
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                   categoryId === ""
-                    ? "border-primary bg-primary-soft/50 ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/40"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/40"
                 }`}
               >
-                <span className="grid h-6 w-6 place-items-center rounded-md bg-muted text-muted-foreground text-[10px]">∅</span>
-                <span className="text-xs font-medium">Tanpa kategori</span>
+                Tanpa kategori
               </button>
-              {filtered.map((c) => (
+              {filteredCats.map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   onClick={() => setCategoryId(c.id)}
-                  className={`flex items-center gap-2 rounded-xl border p-2.5 text-left transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition ${
                     categoryId === c.id
-                      ? "border-primary bg-primary-soft/50 ring-2 ring-primary/20"
-                      : "border-border bg-card hover:border-primary/40"
+                      ? "border-primary bg-primary-soft text-foreground"
+                      : "border-border bg-card text-muted-foreground hover:border-primary/40"
                   }`}
                 >
-                  <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: c.color }} />
-                  <span className="truncate text-xs font-medium">{c.name}</span>
+                  <span className="h-2 w-2 rounded-full" style={{ background: c.color }} />
+                  {c.name}
                 </button>
               ))}
             </div>
           </div>
         )}
+
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Catatan (opsional)"
           className={inputCls}
         />
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
         {err && <p className="text-sm text-destructive">{err}</p>}
         <button
           type="submit"
