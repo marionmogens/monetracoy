@@ -344,7 +344,7 @@ function Features() {
       <div className="mx-auto max-w-7xl px-8 py-24 md:px-12 lg:px-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">
-            Sederhana di luar, <span className="text-primary">cermat di dalam.</span>
+            Keuangan yang teratur dimulai dari <span className="text-primary">kebiasaan mencatat.</span>
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
             Semua yang kamu butuh untuk mengatur uang harian — tanpa ribet.
