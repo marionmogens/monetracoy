@@ -185,16 +185,19 @@ function HeroMock() {
                     +12.4%
                   </span>
                 </div>
-                <div className="mt-3 flex h-20 items-end gap-1.5">
-                  {bars.map((h, i) => (
-                    <div key={`${barIdx}-${i}`} className="flex flex-1 flex-col items-center gap-1">
-                      <div
-                        className="animate-grow-bar w-full rounded-t bg-gradient-to-t from-primary to-accent"
-                        style={{ height: `${h}%`, animationDelay: `${i * 70}ms` }}
-                      />
-                      <span className="text-[8px] text-muted-foreground">{days[i]}</span>
-                    </div>
-                  ))}
+                <div className="mt-3 flex items-end gap-3">
+                  <div className="flex h-20 flex-1 items-end gap-1.5">
+                    {bars.map((h, i) => (
+                      <div key={`${barIdx}-${i}`} className="flex flex-1 flex-col items-center gap-1">
+                        <div
+                          className="animate-grow-bar w-full rounded-t bg-gradient-to-t from-primary to-accent"
+                          style={{ height: `${h}%`, animationDelay: `${i * 70}ms` }}
+                        />
+                        <span className="text-[8px] text-muted-foreground">{days[i]}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <DonutChart key={`d-${barIdx}`} />
                 </div>
               </div>
 
