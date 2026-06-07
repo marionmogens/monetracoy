@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Wallet, PieChart, Bot, Download, Target, Sparkles, ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { ArrowRight, Wallet, PieChart, Bot, Download, Target, Sparkles, ChevronLeft, ChevronRight, Quote, CalendarDays } from "lucide-react";
 import { Logo as LogoMark } from "@/components/Logo";
 
 export const Route = createFileRoute("/")({
@@ -110,10 +110,10 @@ function Hero() {
             Lihat fitur
           </a>
         </div>
-        <div className="flex items-center gap-6 pt-2 text-xs text-muted-foreground">
-          <span>✓ Tanpa kartu kredit</span>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 text-xs text-muted-foreground">
+          <span>✓ Gratis selamanya</span>
           <span>✓ Data terenkripsi</span>
-          <span>✓ Ekspor CSV</span>
+          <span>✓ Siap pakai di HP & laptop</span>
         </div>
       </div>
 
@@ -185,16 +185,19 @@ function HeroMock() {
                     +12.4%
                   </span>
                 </div>
-                <div className="mt-3 flex h-20 items-end gap-1.5">
-                  {bars.map((h, i) => (
-                    <div key={`${barIdx}-${i}`} className="flex flex-1 flex-col items-center gap-1">
-                      <div
-                        className="animate-grow-bar w-full rounded-t bg-gradient-to-t from-primary to-accent"
-                        style={{ height: `${h}%`, animationDelay: `${i * 70}ms` }}
-                      />
-                      <span className="text-[8px] text-muted-foreground">{days[i]}</span>
-                    </div>
-                  ))}
+                <div className="mt-3 flex items-end gap-3">
+                  <div className="flex h-20 flex-1 items-end gap-1.5">
+                    {bars.map((h, i) => (
+                      <div key={`${barIdx}-${i}`} className="flex flex-1 flex-col items-center gap-1">
+                        <div
+                          className="animate-grow-bar w-full rounded-t bg-gradient-to-t from-primary to-accent"
+                          style={{ height: `${h}%`, animationDelay: `${i * 70}ms` }}
+                        />
+                        <span className="text-[8px] text-muted-foreground">{days[i]}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <DonutChart key={`d-${barIdx}`} />
                 </div>
               </div>
 
@@ -268,14 +271,71 @@ function HeroMock() {
 }
 
 
+function DonutChart() {
+  // Cycle 3 segment sets for a "live" feel
+  const sets = [
+    [
+      { c: "var(--primary)", v: 45 },
+      { c: "var(--accent)", v: 30 },
+      { c: "#64748b", v: 25 },
+    ],
+    [
+      { c: "var(--primary)", v: 55 },
+      { c: "var(--accent)", v: 25 },
+      { c: "#64748b", v: 20 },
+    ],
+    [
+      { c: "var(--primary)", v: 35 },
+      { c: "var(--accent)", v: 40 },
+      { c: "#64748b", v: 25 },
+    ],
+  ];
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % sets.length), 1500);
+    return () => clearInterval(t);
+  }, []);
+  const seg = sets[idx];
+  const r = 14;
+  const C = 2 * Math.PI * r;
+  let off = 0;
+  return (
+    <svg viewBox="0 0 40 40" className="h-20 w-20 -rotate-90 transition-all duration-700">
+      <circle cx="20" cy="20" r={r} fill="none" stroke="hsl(var(--muted) / 0.5)" strokeWidth="6" />
+      {seg.map((s, i) => {
+        const len = (s.v / 100) * C;
+        const dash = `${len} ${C - len}`;
+        const dashOff = -off;
+        off += len;
+        return (
+          <circle
+            key={i}
+            cx="20"
+            cy="20"
+            r={r}
+            fill="none"
+            stroke={s.c}
+            strokeWidth="6"
+            strokeDasharray={dash}
+            strokeDashoffset={dashOff}
+            strokeLinecap="butt"
+            style={{ transition: "stroke-dasharray 700ms ease-out, stroke-dashoffset 700ms ease-out" }}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+
 
 const features = [
-  { icon: Wallet, title: "Dompet harian", desc: "Batas pengeluaran per hari." },
-  { icon: PieChart, title: "Grafik visual", desc: "Lihat ke mana uangmu pergi." },
-  { icon: Target, title: "Kategori custom", desc: "Budget sesuai gaya hidupmu." },
-  { icon: Bot, title: "Asisten AI", desc: "Saran finansial personal." },
-  { icon: Download, title: "Ekspor CSV", desc: "Unduh laporan kapan saja." },
-  { icon: Sparkles, title: "Antarmuka bersih", desc: "Nyaman dipakai harian." },
+  { icon: Wallet, title: "Dompet per kategori", desc: "Pisahkan saldo untuk makan, transport, belanja — sesuai kategorimu." },
+  { icon: PieChart, title: "Grafik harian & bulanan", desc: "Lihat tren pengeluaran lewat diagram batang dan donat." },
+  { icon: Target, title: "Batas harian", desc: "Tetapkan limit pengeluaran tiap hari, dipantau otomatis." },
+  { icon: CalendarDays, title: "Kalender & reminder", desc: "Catat tagihan dan jadwal pembayaran di kalender." },
+  { icon: Bot, title: "Asisten AI", desc: "Tanyakan saldo, tren, dan saran finansial dalam bahasa sehari-hari." },
+  { icon: Download, title: "Ekspor CSV & PDF", desc: "Unduh laporan bulanan kapan pun kamu butuh." },
 ];
 
 function Features() {
@@ -284,10 +344,10 @@ function Features() {
       <div className="mx-auto max-w-7xl px-8 py-24 md:px-12 lg:px-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">
-            Semua yang kamu butuh.
+            Sederhana di luar, <span className="text-primary">cermat di dalam.</span>
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Satu app. Kendali penuh.
+            Semua yang kamu butuh untuk mengatur uang harian — tanpa ribet.
           </p>
         </div>
         <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -394,7 +454,7 @@ function CTA() {
   const stats = [
     { v: "100%", l: "Gratis" },
     { v: "<2 mnt", l: "Setup" },
-    { v: "256-bit", l: "Enkripsi" },
+    { v: "24/7", l: "Asisten AI" },
   ];
   return (
     <section className="px-8 pb-24 md:px-12 lg:px-20">
@@ -501,117 +561,84 @@ function Quotes() {
   }, [total]);
 
   return (
-    <section className="border-t border-border/60 bg-gradient-to-b from-secondary/30 to-background">
-      <div className="mx-auto max-w-6xl px-8 py-24 md:px-12 md:py-28 lg:px-20">
-        <div className="mb-10 flex items-end justify-between gap-4">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-primary backdrop-blur">
-              <Quote className="h-3.5 w-3.5" />
-              Words on Money
-            </span>
-            <h2 className="font-quote mt-4 text-3xl italic tracking-tight md:text-4xl">
-              Inspirasi finansial sepanjang masa
-            </h2>
-          </div>
-          <div className="hidden gap-2 md:flex">
-            <button
-              type="button"
-              onClick={() => go(-1)}
-              aria-label="Sebelumnya"
-              className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-muted"
+    <section className="relative border-y border-border/60 bg-gradient-to-br from-primary-soft/40 via-background to-accent/15">
+      {/* Full-bleed slider */}
+      <div className="relative overflow-hidden">
+        <div
+          className="flex transition-transform duration-700 ease-out"
+          style={{ transform: `translateX(-${i * 100}%)` }}
+        >
+          {quotes.map((q, idx) => (
+            <article
+              key={idx}
+              className="grid w-full shrink-0 items-center gap-10 px-16 py-20 md:grid-cols-[1fr_1.4fr] md:gap-16 md:px-28 md:py-28 lg:px-36"
+              aria-hidden={idx !== i}
             >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => go(1)}
-              aria-label="Berikutnya"
-              className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-muted"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Slider */}
-        <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card shadow-xl shadow-primary/5">
-          <div
-            className="flex transition-transform duration-700 ease-out"
-            style={{ transform: `translateX(-${i * 100}%)` }}
-          >
-            {quotes.map((q, idx) => (
-              <article
-                key={idx}
-                className="grid w-full shrink-0 md:grid-cols-2"
-                aria-hidden={idx !== i}
-              >
-                {/* Image */}
-                <div className="relative h-64 overflow-hidden md:h-[420px]">
-                  <img
-                    src={q.image}
-                    alt=""
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-[6s] ease-out"
-                    style={{ transform: idx === i ? "scale(1.06)" : "scale(1)" }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent md:bg-gradient-to-r" />
-                </div>
-                {/* Quote */}
-                <div className="flex flex-col justify-center gap-6 p-8 md:p-12">
-                  <Quote className="h-10 w-10 text-primary/40" />
-                  <p className="font-quote text-2xl italic leading-[1.35] tracking-tight text-foreground md:text-[2rem]">
-                    “{q.text}”
+              {/* Image */}
+              <div className="relative h-64 overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/10 md:h-[420px]">
+                <img
+                  src={q.image}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-[6s] ease-out"
+                  style={{ transform: idx === i ? "scale(1.06)" : "scale(1)" }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent" />
+              </div>
+              {/* Quote */}
+              <div className="flex flex-col justify-center gap-6">
+                <Quote className="h-10 w-10 text-primary/50" />
+                <p className="font-quote text-2xl italic leading-[1.3] tracking-tight text-foreground md:text-[2.25rem]">
+                  “{q.text}”
+                </p>
+                <div className="flex items-center gap-3">
+                  <span className="h-px w-10 bg-primary/40" />
+                  <p className="text-sm font-medium tracking-wide text-muted-foreground">
+                    {q.author}
                   </p>
-                  <div className="flex items-center gap-3">
-                    <span className="h-px w-10 bg-primary/40" />
-                    <p className="text-sm font-medium tracking-wide text-muted-foreground">
-                      {q.author}
-                    </p>
-                  </div>
                 </div>
-              </article>
-            ))}
-          </div>
+              </div>
+            </article>
+          ))}
         </div>
 
-        {/* Dots + mobile arrows */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex gap-2 md:hidden">
+        {/* Left arrow — inside, edge-anchored */}
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          aria-label="Sebelumnya"
+          className="absolute left-3 top-1/2 z-10 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur transition hover:bg-card md:left-6 md:h-14 md:w-14"
+        >
+          <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+        </button>
+        <button
+          type="button"
+          onClick={() => go(1)}
+          aria-label="Berikutnya"
+          className="absolute right-3 top-1/2 z-10 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur transition hover:bg-card md:right-6 md:h-14 md:w-14"
+        >
+          <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+        </button>
+
+        {/* Dots */}
+        <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2">
+          {quotes.map((_, idx) => (
             <button
+              key={idx}
               type="button"
-              onClick={() => go(-1)}
-              aria-label="Sebelumnya"
-              className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => go(1)}
-              aria-label="Berikutnya"
-              className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            {quotes.map((_, idx) => (
-              <button
-                key={idx}
-                type="button"
-                aria-label={`Slide ${idx + 1}`}
-                onClick={() => setI(idx)}
-                className={`h-1.5 rounded-full transition-all ${
-                  idx === i ? "w-8 bg-primary" : "w-2 bg-border hover:bg-muted-foreground/40"
-                }`}
-              />
-            ))}
-          </div>
+              aria-label={`Slide ${idx + 1}`}
+              onClick={() => setI(idx)}
+              className={`h-1.5 rounded-full transition-all ${
+                idx === i ? "w-8 bg-primary" : "w-2 bg-border hover:bg-muted-foreground/40"
+              }`}
+            />
+          ))}
         </div>
       </div>
     </section>
   );
 }
+
 
 function Footer() {
   return (
