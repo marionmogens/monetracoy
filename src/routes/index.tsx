@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Wallet, PieChart, Bot, Download, Target, Sparkles, ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { ArrowRight, Wallet, PieChart, Bot, Download, Target, Sparkles, ChevronLeft, ChevronRight, Quote, CalendarDays } from "lucide-react";
 import { Logo as LogoMark } from "@/components/Logo";
 
 export const Route = createFileRoute("/")({
