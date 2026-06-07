@@ -715,7 +715,6 @@ function AddTxModal({
 }) {
   const add = useServerFn(addTransaction);
   const router = useRouter();
-  const [walletId, setWalletId] = useState<string>("");
   const [type, setType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
@@ -724,16 +723,12 @@ function AddTxModal({
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  const selectedWallet = wallets.find((w) => w.id === walletId) || null;
-  const lockedCategoryId = selectedWallet?.categoryId ?? null;
-  const lockedCategory = lockedCategoryId ? categories.find((c) => c.id === lockedCategoryId) : null;
   const filteredCats = categories.filter((c) => c.type === type);
-
-  function pickWallet(id: string) {
-    setWalletId(id);
-    setCategoryId("");
-    if (id) setType("expense");
-  }
+  // Auto-resolve wallet from selected category (expense only)
+  const autoWallet =
+    type === "expense" && categoryId
+      ? wallets.find((w) => w.categoryId === categoryId) || null
+      : null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -744,8 +739,8 @@ function AddTxModal({
         data: {
           type,
           amount: Number(amount),
-          categoryId: (lockedCategoryId ?? categoryId) || null,
-          walletId: walletId || null,
+          categoryId: categoryId || null,
+          walletId: autoWallet?.id || null,
           note,
           occurredAt: date,
         },
@@ -772,7 +767,6 @@ function AddTxModal({
               onClick={() => {
                 setType(t);
                 setCategoryId("");
-                if (t === "income") setWalletId("");
               }}
               className={`rounded-lg py-1.5 text-sm font-medium transition ${
                 type === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
@@ -799,76 +793,24 @@ function AddTxModal({
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
         </div>
 
-        {/* Source picker (chips) */}
+        {/* Category chips — drives wallet automatically */}
         <div>
-          <p className="mb-1.5 text-xs font-medium text-muted-foreground">Sumber</p>
+          <p className="mb-1.5 text-xs font-medium text-muted-foreground">Kategori</p>
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
-              onClick={() => pickWallet("")}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                walletId === ""
+              onClick={() => setCategoryId("")}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                categoryId === ""
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-card text-muted-foreground hover:border-primary/40"
               }`}
             >
-              <Wallet className="h-3 w-3" /> Saldo utama
+              Tanpa kategori
             </button>
-            {type === "expense" &&
-              wallets.map((w) => {
-                const cat = categories.find((c) => c.id === w.categoryId);
-                const active = walletId === w.id;
-                return (
-                  <button
-                    key={w.id}
-                    type="button"
-                    onClick={() => pickWallet(w.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                      active
-                        ? "border-primary bg-primary-soft text-foreground"
-                        : "border-border bg-card text-muted-foreground hover:border-primary/40"
-                    }`}
-                    title={`Rp ${Math.round(w.balance).toLocaleString("id-ID")}`}
-                  >
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ background: cat?.color || (w as any).color || "#64748b" }}
-                    />
-                    {w.name}
-                  </button>
-                );
-              })}
-          </div>
-        </div>
-
-        {/* Category — locked if wallet, else chips */}
-        {selectedWallet ? (
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs">
-            <span className="text-muted-foreground">Kategori:</span>
-            <span className="inline-flex items-center gap-1.5 font-medium">
-              {lockedCategory?.color && (
-                <span className="h-2 w-2 rounded-full" style={{ background: lockedCategory.color }} />
-              )}
-              {lockedCategory?.name ?? "Tanpa kategori"}
-            </span>
-            <span className="ml-auto text-[10px] text-muted-foreground">otomatis</span>
-          </div>
-        ) : (
-          <div>
-            <p className="mb-1.5 text-xs font-medium text-muted-foreground">Kategori</p>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCategoryId("")}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                  categoryId === ""
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/40"
-                }`}
-              >
-                Tanpa kategori
-              </button>
-              {filteredCats.map((c) => (
+            {filteredCats.map((c) => {
+              const hasWallet = type === "expense" && wallets.some((w) => w.categoryId === c.id);
+              return (
                 <button
                   key={c.id}
                   type="button"
@@ -881,11 +823,27 @@ function AddTxModal({
                 >
                   <span className="h-2 w-2 rounded-full" style={{ background: c.color }} />
                   {c.name}
+                  {hasWallet && <Wallet className="h-3 w-3 opacity-60" />}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        )}
+        </div>
+
+        {/* Source hint */}
+        <div className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+          {autoWallet ? (
+            <>
+              Saldo dompet <span className="font-medium text-foreground">{autoWallet.name}</span> akan{" "}
+              {type === "expense" ? "berkurang" : "bertambah"}.
+            </>
+          ) : (
+            <>
+              {type === "expense" ? "Mengurangi" : "Menambah"} saldo utama
+              {categoryId ? " (kategori belum punya dompet)." : "."}
+            </>
+          )}
+        </div>
 
         <input
           value={note}
