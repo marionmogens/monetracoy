@@ -1202,7 +1202,7 @@ function WalletsView({
   const del = useServerFn(deleteWallet);
   const router = useRouter();
   const usedCatIds = new Set(wallets.map((w) => w.categoryId).filter(Boolean) as string[]);
-  const availableCats = categories;
+  const availableCats = categories.filter((c) => c.type === "expense");
 
   const [categoryId, setCategoryId] = useState<string>("");
   const [initial, setInitial] = useState("");
