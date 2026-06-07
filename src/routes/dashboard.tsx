@@ -1268,7 +1268,8 @@ function WalletsView({
   const del = useServerFn(deleteWallet);
   const router = useRouter();
   const usedCatIds = new Set(wallets.map((w) => w.categoryId).filter(Boolean) as string[]);
-  const availableCats = categories.filter((c) => !usedCatIds.has(c.id));
+  const availableCats = categories;
+
   const [categoryId, setCategoryId] = useState<string>("");
   const [initial, setInitial] = useState("");
   const [err, setErr] = useState("");
