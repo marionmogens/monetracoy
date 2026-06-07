@@ -1201,6 +1201,7 @@ function WalletsView({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setErr("");
     const cat = categories.find((c) => c.id === categoryId);
     if (!cat) {
       setErr("Pilih kategori untuk dompet baru");
