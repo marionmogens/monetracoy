@@ -830,20 +830,8 @@ function AddTxModal({
           </div>
         </div>
 
-        {/* Source hint */}
-        <div className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-          {autoWallet ? (
-            <>
-              Saldo dompet <span className="font-medium text-foreground">{autoWallet.name}</span> akan{" "}
-              {type === "expense" ? "berkurang" : "bertambah"}.
-            </>
-          ) : (
-            <>
-              {type === "expense" ? "Mengurangi" : "Menambah"} saldo utama
-              {categoryId ? " (kategori belum punya dompet)." : "."}
-            </>
-          )}
-        </div>
+
+
 
         <input
           value={note}
