@@ -5,10 +5,17 @@
 //     error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 // @ts-ignore
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import tsConfigPaths from "vite-tsconfig-paths";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
 export default defineConfig({
-  tanstackStart: {
-    server: { entry: "server" },
-  },
+  plugins: [
+    tanstackStart(),
+    react(),
+    tailwindcss(),
+    tsConfigPaths(),
+  ],
 });
