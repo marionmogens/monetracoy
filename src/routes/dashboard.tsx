@@ -715,7 +715,7 @@ function AddTxModal({
 }) {
   const add = useServerFn(addTransaction);
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<"source" | "wallet" | "form">("source");
   const [walletId, setWalletId] = useState<string>("");
   const [type, setType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
