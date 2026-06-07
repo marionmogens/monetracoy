@@ -734,8 +734,9 @@ function AddTxModal({
     setWalletId(id);
     setCategoryId("");
     if (id) setType("expense");
-    setStep(2);
+    setStep("form");
   }
+
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
