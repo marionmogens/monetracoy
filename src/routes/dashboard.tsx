@@ -1345,7 +1345,7 @@ function WalletsView({
       <form onSubmit={submit} className="mb-6 rounded-3xl border border-border bg-card p-6">
         <h3 className="text-sm font-semibold tracking-tight">Buat dompet baru</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Dompet dibuat dari kategori pengeluaran. Untuk menambah pilihan, buat kategori baru di tab Kategori.
+          Dompet dibuat dari kategori. Untuk menambah pilihan, buat kategori baru di tab Kategori.
         </p>
         <div className="mt-3 grid gap-2 md:grid-cols-[1fr_180px_auto]">
           <select
