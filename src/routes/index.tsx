@@ -329,8 +329,6 @@ function DonutChart() {
 
 
 
-import { CalendarDays } from "lucide-react";
-
 const features = [
   { icon: Wallet, title: "Dompet per kategori", desc: "Pisahkan saldo untuk makan, transport, belanja — sesuai kategorimu." },
   { icon: PieChart, title: "Grafik harian & bulanan", desc: "Lihat tren pengeluaran lewat diagram batang dan donat." },
