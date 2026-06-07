@@ -11,11 +11,12 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 export default defineConfig({
-  plugins: [
-    tanstackStart(),
-    react(),
-    tailwindcss(),
-    tsConfigPaths(),
-  ],
+  plugins: [tanstackStart(), react(), tailwindcss(), tsConfigPaths(), cloudflare({
+    viteEnvironment: {
+      name: "ssr"
+    }
+  })],
 });
