@@ -1357,11 +1357,14 @@ function WalletsView({
             <option value="">
               {availableCats.length === 0 ? "Tidak ada kategori tersisa — buat di tab Kategori" : "Pilih kategori…"}
             </option>
-            {availableCats.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
+            {availableCats.map((c) => {
+              const used = usedCatIds.has(c.id);
+              return (
+                <option key={c.id} value={c.id} disabled={used}>
+                  {c.name}{used ? " (sudah ada dompet)" : ""}
+                </option>
+              );
+            })}
           </select>
           <input
             type="number"
