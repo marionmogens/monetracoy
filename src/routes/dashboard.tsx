@@ -715,7 +715,7 @@ function AddTxModal({
 }) {
   const add = useServerFn(addTransaction);
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<"source" | "wallet" | "form">("source");
   const [walletId, setWalletId] = useState<string>("");
   const [type, setType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
@@ -734,8 +734,9 @@ function AddTxModal({
     setWalletId(id);
     setCategoryId("");
     if (id) setType("expense");
-    setStep(2);
+    setStep("form");
   }
+
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -762,24 +763,58 @@ function AddTxModal({
     }
   }
 
-  if (step === 1) {
+  if (step === "source") {
     return (
       <Modal title="Transaksi baru" onClose={onClose}>
         <p className="mb-3 text-xs text-muted-foreground">Pilih sumber dana untuk transaksi ini.</p>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => pick("")}
-            className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3 text-left transition hover:border-primary/50 hover:bg-primary-soft/30"
+            className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-primary/50 hover:bg-primary-soft/30"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary-soft text-primary">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
               <Wallet className="h-5 w-5" />
             </span>
-            <span className="flex-1">
-              <span className="block text-sm font-semibold">Rekening utama</span>
-              <span className="block text-[11px] text-muted-foreground">Saldo total · bebas kategori</span>
+            <span className="text-sm font-semibold">Saldo</span>
+            <span className="text-[11px] text-muted-foreground">Rekening utama · bebas kategori</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (wallets.length === 0) {
+                pick("");
+              } else {
+                setStep("wallet");
+              }
+            }}
+            disabled={wallets.length === 0}
+            className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-primary/50 hover:bg-primary-soft/30 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-accent/20 text-accent-foreground">
+              <Wallet className="h-5 w-5" />
+            </span>
+            <span className="text-sm font-semibold">Dompet</span>
+            <span className="text-[11px] text-muted-foreground">
+              {wallets.length === 0 ? "Belum ada dompet" : `${wallets.length} dompet · kategori otomatis`}
             </span>
           </button>
+        </div>
+      </Modal>
+    );
+  }
+
+  if (step === "wallet") {
+    return (
+      <Modal title="Pilih dompet" onClose={onClose}>
+        <button
+          type="button"
+          onClick={() => setStep("source")}
+          className="mb-3 text-xs text-muted-foreground hover:text-foreground"
+        >
+          ← Kembali
+        </button>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {wallets.map((w) => {
             const cat = categories.find((c) => c.id === w.categoryId);
             return (
@@ -810,6 +845,7 @@ function AddTxModal({
     );
   }
 
+
   return (
     <Modal
       title={selectedWallet ? `Dompet · ${selectedWallet.name}` : "Rekening utama"}
@@ -817,7 +853,7 @@ function AddTxModal({
     >
       <button
         type="button"
-        onClick={() => setStep(1)}
+        onClick={() => setStep(walletId ? "wallet" : "source")}
         className="mb-3 text-xs text-muted-foreground hover:text-foreground"
       >
         ← Ganti sumber
