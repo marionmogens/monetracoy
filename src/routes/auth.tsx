@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
-import { signupUser, loginUser } from "@/lib/auth.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
 import { ArrowRight, Sparkles, ShieldCheck, TrendingUp } from "lucide-react";
 
@@ -21,8 +20,6 @@ function AuthPage() {
   const isSignup = mode === "signup";
   const navigate = useNavigate();
   const router = useRouter();
-  const signup = useServerFn(signupUser);
-  const login = useServerFn(loginUser);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -36,9 +33,18 @@ function AuthPage() {
     setLoading(true);
     try {
       if (isSignup) {
-        await signup({ data: { name, email, password } });
+        const { error: err } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+            data: { name },
+          },
+        });
+        if (err) throw err;
       } else {
-        await login({ data: { email, password } });
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) throw err;
       }
       await router.invalidate();
       navigate({ to: "/dashboard" });
