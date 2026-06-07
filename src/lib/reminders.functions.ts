@@ -1,31 +1,26 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function requireUserId() {
-  const { getMonetraSession } = await import("./session.server");
-  const session = await getMonetraSession();
-  if (!session.data.userId) throw new Error("Unauthorized");
-  return session.data.userId;
-}
-
-export const listReminders = createServerFn({ method: "GET" }).handler(async () => {
-  const userId = await requireUserId();
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
-    .from("monetra_reminders")
-    .select("id, title, note, amount, due_date, done, created_at")
-    .eq("user_id", userId)
-    .order("due_date", { ascending: true });
-  if (error) throw new Error(error.message);
-  return (data || []).map((r: any) => ({
-    id: r.id as string,
-    title: r.title as string,
-    note: (r.note as string | null) ?? "",
-    amount: r.amount == null ? null : Number(r.amount),
-    dueDate: (r.due_date as string).slice(0, 10),
-    done: !!r.done,
-  }));
-});
+export const listReminders = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data, error } = await supabase
+      .from("monetra_reminders")
+      .select("id, title, note, amount, due_date, done, created_at")
+      .eq("user_id", userId)
+      .order("due_date", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data || []).map((r: any) => ({
+      id: r.id as string,
+      title: r.title as string,
+      note: (r.note as string | null) ?? "",
+      amount: r.amount == null ? null : Number(r.amount),
+      dueDate: (r.due_date as string).slice(0, 10),
+      done: !!r.done,
+    }));
+  });
 
 const createSchema = z.object({
   title: z.string().min(1).max(120),
@@ -35,11 +30,11 @@ const createSchema = z.object({
 });
 
 export const createReminder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => createSchema.parse(d))
-  .handler(async ({ data }) => {
-    const userId = await requireUserId();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("monetra_reminders").insert({
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase.from("monetra_reminders").insert({
       user_id: userId,
       title: data.title,
       note: data.note || null,
@@ -51,11 +46,11 @@ export const createReminder = createServerFn({ method: "POST" })
   });
 
 export const toggleReminder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid(), done: z.boolean() }).parse(d))
-  .handler(async ({ data }) => {
-    const userId = await requireUserId();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
       .from("monetra_reminders")
       .update({ done: data.done })
       .eq("id", data.id)
@@ -65,11 +60,11 @@ export const toggleReminder = createServerFn({ method: "POST" })
   });
 
 export const deleteReminder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
-    const userId = await requireUserId();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
       .from("monetra_reminders")
       .delete()
       .eq("id", data.id)

@@ -39,15 +39,7 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "monetra_categories_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "monetra_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       monetra_reminders: {
         Row: {
@@ -80,15 +72,7 @@ export type Database = {
           title?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "monetra_reminders_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "monetra_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       monetra_savings_goals: {
         Row: {
@@ -121,15 +105,7 @@ export type Database = {
           target_date?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "monetra_savings_goals_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "monetra_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       monetra_transactions: {
         Row: {
@@ -174,13 +150,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "monetra_transactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "monetra_users"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "monetra_transactions_wallet_id_fkey"
             columns: ["wallet_id"]
             isOneToOne: false
@@ -197,16 +166,14 @@ export type Database = {
           email: string
           id: string
           name: string
-          password_hash: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           daily_limit?: number
           email: string
-          id?: string
-          name: string
-          password_hash: string
+          id: string
+          name?: string
         }
         Update: {
           avatar_url?: string | null
@@ -215,7 +182,6 @@ export type Database = {
           email?: string
           id?: string
           name?: string
-          password_hash?: string
         }
         Relationships: []
       }
@@ -256,13 +222,6 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "monetra_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "monetra_wallets_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "monetra_users"
             referencedColumns: ["id"]
           },
         ]
