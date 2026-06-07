@@ -454,7 +454,7 @@ function CTA() {
   const stats = [
     { v: "100%", l: "Gratis" },
     { v: "<2 mnt", l: "Setup" },
-    { v: "256-bit", l: "Enkripsi" },
+    { v: "24/7", l: "Asisten AI" },
   ];
   return (
     <section className="px-8 pb-24 md:px-12 lg:px-20">
