@@ -853,7 +853,7 @@ function AddTxModal({
     >
       <button
         type="button"
-        onClick={() => setStep(1)}
+        onClick={() => setStep(walletId ? "wallet" : "source")}
         className="mb-3 text-xs text-muted-foreground hover:text-foreground"
       >
         ← Ganti sumber
