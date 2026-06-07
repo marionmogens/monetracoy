@@ -110,10 +110,10 @@ function Hero() {
             Lihat fitur
           </a>
         </div>
-        <div className="flex items-center gap-6 pt-2 text-xs text-muted-foreground">
-          <span>✓ Tanpa kartu kredit</span>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 text-xs text-muted-foreground">
+          <span>✓ Gratis selamanya</span>
           <span>✓ Data terenkripsi</span>
-          <span>✓ Ekspor CSV</span>
+          <span>✓ Siap pakai di HP & laptop</span>
         </div>
       </div>
 
