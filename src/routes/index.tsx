@@ -271,6 +271,63 @@ function HeroMock() {
 }
 
 
+function DonutChart() {
+  // Cycle 3 segment sets for a "live" feel
+  const sets = [
+    [
+      { c: "var(--primary)", v: 45 },
+      { c: "var(--accent)", v: 30 },
+      { c: "#64748b", v: 25 },
+    ],
+    [
+      { c: "var(--primary)", v: 55 },
+      { c: "var(--accent)", v: 25 },
+      { c: "#64748b", v: 20 },
+    ],
+    [
+      { c: "var(--primary)", v: 35 },
+      { c: "var(--accent)", v: 40 },
+      { c: "#64748b", v: 25 },
+    ],
+  ];
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % sets.length), 1500);
+    return () => clearInterval(t);
+  }, []);
+  const seg = sets[idx];
+  const r = 14;
+  const C = 2 * Math.PI * r;
+  let off = 0;
+  return (
+    <svg viewBox="0 0 40 40" className="h-20 w-20 -rotate-90 transition-all duration-700">
+      <circle cx="20" cy="20" r={r} fill="none" stroke="hsl(var(--muted) / 0.5)" strokeWidth="6" />
+      {seg.map((s, i) => {
+        const len = (s.v / 100) * C;
+        const dash = `${len} ${C - len}`;
+        const dashOff = -off;
+        off += len;
+        return (
+          <circle
+            key={i}
+            cx="20"
+            cy="20"
+            r={r}
+            fill="none"
+            stroke={s.c}
+            strokeWidth="6"
+            strokeDasharray={dash}
+            strokeDashoffset={dashOff}
+            strokeLinecap="butt"
+            style={{ transition: "stroke-dasharray 700ms ease-out, stroke-dashoffset 700ms ease-out" }}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+
 
 const features = [
   { icon: Wallet, title: "Dompet harian", desc: "Batas pengeluaran per hari." },
