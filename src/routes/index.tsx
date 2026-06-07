@@ -329,13 +329,15 @@ function DonutChart() {
 
 
 
+import { CalendarDays } from "lucide-react";
+
 const features = [
-  { icon: Wallet, title: "Dompet harian", desc: "Batas pengeluaran per hari." },
-  { icon: PieChart, title: "Grafik visual", desc: "Lihat ke mana uangmu pergi." },
-  { icon: Target, title: "Kategori custom", desc: "Budget sesuai gaya hidupmu." },
-  { icon: Bot, title: "Asisten AI", desc: "Saran finansial personal." },
-  { icon: Download, title: "Ekspor CSV", desc: "Unduh laporan kapan saja." },
-  { icon: Sparkles, title: "Antarmuka bersih", desc: "Nyaman dipakai harian." },
+  { icon: Wallet, title: "Dompet per kategori", desc: "Pisahkan saldo untuk makan, transport, belanja — sesuai kategorimu." },
+  { icon: PieChart, title: "Grafik harian & bulanan", desc: "Lihat tren pengeluaran lewat diagram batang dan donat." },
+  { icon: Target, title: "Batas harian", desc: "Tetapkan limit pengeluaran tiap hari, dipantau otomatis." },
+  { icon: CalendarDays, title: "Kalender & reminder", desc: "Catat tagihan dan jadwal pembayaran di kalender." },
+  { icon: Bot, title: "Asisten AI", desc: "Tanyakan saldo, tren, dan saran finansial dalam bahasa sehari-hari." },
+  { icon: Download, title: "Ekspor CSV & PDF", desc: "Unduh laporan bulanan kapan pun kamu butuh." },
 ];
 
 function Features() {
@@ -344,10 +346,10 @@ function Features() {
       <div className="mx-auto max-w-7xl px-8 py-24 md:px-12 lg:px-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">
-            Semua yang kamu butuh.
+            Sederhana di luar, <span className="text-primary">cermat di dalam.</span>
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Satu app. Kendali penuh.
+            Semua yang kamu butuh untuk mengatur uang harian — tanpa ribet.
           </p>
         </div>
         <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
