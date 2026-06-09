@@ -1198,7 +1198,6 @@ function WalletsView({
 }) {
   const create = useServerFn(createWallet);
   const adjust = useServerFn(adjustWallet);
-  const del = useServerFn(deleteWallet);
   const router = useRouter();
   const usedCatIds = new Set(wallets.map((w) => w.categoryId).filter(Boolean) as string[]);
   const availableCats = categories.filter((c) => c.type === "expense");
@@ -1245,24 +1244,6 @@ function WalletsView({
     await adjust({ data: { id, amount } });
     await refresh();
   }
-  async function spend(id: string) {
-    const v = prompt("Pengeluaran dari dompet (Rp):");
-    if (!v) return;
-    const amount = Number(v);
-    if (!amount) return;
-    try {
-      await adjust({ data: { id, amount: -Math.abs(amount) } });
-      await refresh();
-    } catch (e: any) {
-      alert(e?.message || "Gagal");
-    }
-  }
-  async function remove(id: string) {
-    if (!confirm("Hapus dompet ini?")) return;
-    await del({ data: { id } });
-    await refresh();
-  }
-
   const total = wallets.reduce((s, w) => s + w.balance, 0);
 
   return (
@@ -1331,9 +1312,6 @@ function WalletsView({
                 </div>
                 <p className="font-medium">{w.name}</p>
               </div>
-              <button onClick={() => remove(w.id)} className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive">
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
             </div>
             <p className="mt-3 text-2xl font-semibold tracking-tight">Rp {Math.round(w.balance).toLocaleString("id-ID")}</p>
             <div className="mt-3 flex gap-2">
@@ -1342,12 +1320,6 @@ function WalletsView({
                 className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium hover:bg-muted"
               >
                 + Top up
-              </button>
-              <button
-                onClick={() => spend(w.id)}
-                className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium hover:bg-muted"
-              >
-                − Pakai
               </button>
             </div>
           </div>
