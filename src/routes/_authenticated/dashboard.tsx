@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 
 
-import { getCurrentUser, logoutUser } from "@/lib/auth.functions";
+import { supabase } from "@/integrations/supabase/client";
 import {
   getDashboardData,
   addTransaction,
@@ -48,7 +48,7 @@ import {
   exportMonthlyCSV,
   exportMonthlyData,
 } from "@/lib/finance.functions";
-import { createWallet, adjustWallet, deleteWallet } from "@/lib/wallets.functions";
+import { createWallet, adjustWallet } from "@/lib/wallets.functions";
 import { listReminders, createReminder, toggleReminder, deleteReminder } from "@/lib/reminders.functions";
 import { chatFinance } from "@/lib/chat.functions";
 
@@ -60,11 +60,6 @@ import autoTable from "jspdf-autotable";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Monetra" }] }),
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) throw redirect({ to: "/auth", search: { mode: "signin" } });
-    return { user };
-  },
   component: Dashboard,
 });
 
@@ -74,11 +69,9 @@ const rupiah = (n: number) =>
 const today = () => new Date().toISOString().slice(0, 10);
 
 function Dashboard() {
-  const { user } = Route.useRouteContext();
+  const { user } = Route.useRouteContext() as { user: { email?: string; user_metadata?: { name?: string } } };
   const router = useRouter();
   const navigate = useNavigate();
-
-  const logout = useServerFn(logoutUser);
   const fetchData = useServerFn(getDashboardData);
 
   const dash = useQuery({
@@ -88,6 +81,8 @@ function Dashboard() {
 
   const qc = useQueryClient();
   const data = dash.data;
+  const fallbackEmail = user?.email || "";
+  const fallbackName = user?.user_metadata?.name || fallbackEmail.split("@")[0] || "User";
   useEffect(() => {
     const h = () => qc.invalidateQueries({ queryKey: ["dashboard"] });
     window.addEventListener("monetra:refresh", h);
@@ -104,9 +99,11 @@ function Dashboard() {
   const [txCategory, setTxCategory] = useState<string>("all");
 
   async function handleLogout() {
-    await logout();
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
     await router.invalidate();
-    navigate({ to: "/" });
+    navigate({ to: "/auth", search: { mode: "signin" }, replace: true });
   }
 
   const exportCsvFn = useServerFn(exportMonthlyCSV);
