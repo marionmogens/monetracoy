@@ -83,6 +83,8 @@ function Dashboard() {
   const data = dash.data;
   const fallbackEmail = user?.email || "";
   const fallbackName = user?.user_metadata?.name || fallbackEmail.split("@")[0] || "User";
+  const profileName = data?.user?.name || fallbackName;
+  const profileEmail = data?.user?.email || fallbackEmail;
   useEffect(() => {
     const h = () => qc.invalidateQueries({ queryKey: ["dashboard"] });
     window.addEventListener("monetra:refresh", h);
@@ -141,7 +143,7 @@ function Dashboard() {
       doc.text("Monetra — Laporan Keuangan", 14, 18);
       doc.setFontSize(11);
       doc.setTextColor(100);
-      doc.text(`Nama: ${user.name}`, 14, 26);
+      doc.text(`Nama: ${profileName}`, 14, 26);
       doc.text(`Periode: ${monthName}`, 14, 32);
       let inc = 0;
       let exp = 0;
@@ -292,10 +294,10 @@ function Dashboard() {
               onClick={() => setShowProfile(true)}
               className="flex min-w-0 flex-1 items-center gap-3 text-left"
             >
-              <Avatar name={user.name} url={data?.user?.avatarUrl ?? null} size={36} />
+              <Avatar name={profileName} url={data?.user?.avatarUrl ?? null} size={36} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{user.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                <p className="truncate text-sm font-medium">{profileName}</p>
+                <p className="truncate text-xs text-muted-foreground">{profileEmail}</p>
               </div>
             </button>
             <ThemeToggle />
@@ -326,7 +328,7 @@ function Dashboard() {
                 className="grid h-8 w-8 place-items-center rounded-full bg-muted text-muted-foreground hover:text-foreground"
                 aria-label="Profil"
               >
-                <Avatar name={user.name} url={data?.user?.avatarUrl ?? null} size={28} />
+                <Avatar name={profileName} url={data?.user?.avatarUrl ?? null} size={28} />
               </button>
               <button onClick={handleLogout} className="rounded-full p-1.5 text-muted-foreground hover:bg-muted" aria-label="Keluar">
                 <LogOut className="h-4 w-4" />
@@ -372,7 +374,7 @@ function Dashboard() {
           {data && stats && view === "overview" && (
             <>
               <div className="mb-6">
-                <h1 className="text-2xl font-semibold tracking-tight">Hai, {user.name} 👋</h1>
+                <h1 className="text-2xl font-semibold tracking-tight">Hai, {profileName} 👋</h1>
                 <p className="mt-1 text-sm text-muted-foreground">Ringkasan keuanganmu bulan ini.</p>
               </div>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
