@@ -88,16 +88,3 @@ export const adjustWallet = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const deleteWallet = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("monetra_wallets")
-      .delete()
-      .eq("id", data.id)
-      .eq("user_id", userId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
