@@ -54,9 +54,8 @@ const topUpSchema = z.object({
   id: z.string().uuid(),
   amount: z
     .number()
-    .min(-1_000_000_000)
+    .positive("Jumlah top up harus lebih dari 0")
     .max(1_000_000_000)
-    .refine((v) => v !== 0, "Jumlah tidak boleh 0"),
 });
 
 export const adjustWallet = createServerFn({ method: "POST" })
@@ -72,17 +71,14 @@ export const adjustWallet = createServerFn({ method: "POST" })
       .maybeSingle();
     if (wErr || !w) throw new Error(wErr?.message || "Dompet tidak ditemukan");
 
-    if (data.amount > 0) {
-      const avail = await getAvailableFunds(supabase, userId);
-      if (data.amount > avail) {
-        throw new Error(
-          `Dana tersedia hanya ${rupiah(avail)}. Tambah pemasukan dulu sebelum top up.`
-        );
-      }
+    const avail = await getAvailableFunds(supabase, userId);
+    if (data.amount > avail) {
+      throw new Error(
+        `Dana tersedia hanya ${rupiah(avail)}. Tambah pemasukan dulu sebelum top up.`
+      );
     }
 
     const next = Number(w.balance) + data.amount;
-    if (next < 0) throw new Error("Saldo dompet tidak boleh negatif");
     const { error } = await supabase
       .from("monetra_wallets")
       .update({ balance: next })
@@ -92,16 +88,3 @@ export const adjustWallet = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const deleteWallet = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("monetra_wallets")
-      .delete()
-      .eq("id", data.id)
-      .eq("user_id", userId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });

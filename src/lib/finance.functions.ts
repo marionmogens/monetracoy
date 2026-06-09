@@ -2,10 +2,51 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+async function ensureMonetraUser(supabase: any, userId: string, claims: any) {
+  const { data: existing, error: existingError } = await supabase
+    .from("monetra_users")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle();
+  if (existingError) throw new Error(existingError.message);
+
+  if (!existing) {
+    const email = claims?.email || "";
+    const name = claims?.user_metadata?.name || claims?.name || email.split("@")[0] || "User";
+    const { error: insertError } = await supabase
+      .from("monetra_users")
+      .insert({ id: userId, email, name });
+    if (insertError) throw new Error(insertError.message);
+  }
+
+  const { data: categories, error: categoryCheckError } = await supabase
+    .from("monetra_categories")
+    .select("id")
+    .eq("user_id", userId)
+    .limit(1);
+  if (categoryCheckError) throw new Error(categoryCheckError.message);
+  if (!categories?.length) {
+    const defaults: Array<[string, "income" | "expense", string]> = [
+      ["Gaji", "income", "#22c55e"],
+      ["Bonus", "income", "#10b981"],
+      ["Makanan", "expense", "#ef4444"],
+      ["Transportasi", "expense", "#f97316"],
+      ["Belanja", "expense", "#8b5cf6"],
+      ["Hiburan", "expense", "#ec4899"],
+      ["Tagihan", "expense", "#0ea5e9"],
+    ];
+    const { error: seedError } = await supabase.from("monetra_categories").insert(
+      defaults.map(([name, type, color]) => ({ user_id: userId, name, type, color }))
+    );
+    if (seedError) throw new Error(seedError.message);
+  }
+}
+
 export const getDashboardData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId, claims } = context;
+    await ensureMonetraUser(supabase, userId, claims);
 
     const [userRes, txRes, catRes, walletRes] = await Promise.all([
       supabase
